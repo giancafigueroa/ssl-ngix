@@ -1,0 +1,32 @@
+nginx-proxy:
+  image: jwilder/nginx-proxy
+  restart: always
+  ports:
+    - "80:80"
+    - "443:443"
+  volumes:
+    - /var/run/docker.sock:/tmp/docker.sock:ro
+    - /home/centos/certs:/etc/nginx/certs:ro
+    - /etc/nginx/vhost.d
+    - /usr/share/nginx/html
+  labels:
+    - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy
+
+letsencrypt:
+  image: jrcs/letsencrypt-nginx-proxy-companion
+  restart: always
+  volumes:
+    - /home/centos/certs:/etc/nginx/certs:rw
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+  volumes_from:
+    - nginx-proxy:rw
+
+cocanasa:
+  image: cocanasa-docker_api:latest
+  restart: always
+  expose:
+    - "1337"
+  environment:
+    - VIRTUAL_HOST=api.cocanasa.org
+    - LETSENCRYPT_HOST=api.cocanasa.org
+    - LETSENCRYPT_EMAIL=ceo@devpowersolutions.com
